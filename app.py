@@ -9,8 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 # Set up page configuration
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-# WALLPAPER & POPUP CSS INJECTION
-# You can change the background-image URL below to any wallpaper you prefer
+# WALLPAPER & LAYOUT ALIGNMENT CSS
 st.markdown("""
     <style>
     /* Full-screen Wallpaper Background */
@@ -21,14 +20,14 @@ st.markdown("""
         background-attachment: fixed;
     }
     
-    /* Global Font Change */
+    /* Global Clean Typography Stack */
     html, body, [class*="css"], .stSlider, .stSelectbox, p, label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Clean frosted-glass look for the content cards so they float cleanly over the wallpaper */
+    /* Content Containers Layout */
     .config-block {
-        background-color: rgba(255, 255, 255, 0.92);
+        background-color: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(8px);
         border: 1px solid rgba(226, 232, 240, 0.8);
         border-radius: 12px;
@@ -46,33 +45,65 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     }
     
-    /* Clean Title & Header Styling over wallpaper */
+    /* Header typography elements */
     h1 {
         font-weight: 700 !important;
         color: #0F172A !important;
         font-size: 2.4rem !important;
-        text-shadow: 0px 2px 4px rgba(255, 255, 255, 0.5);
     }
-    
     h3 {
         font-weight: 600 !important;
         color: #1E293B !important;
         font-size: 1.25rem !important;
+        margin-bottom: 12px !important;
     }
     
-    /* Primary Predict Button styling */
-    div[data-testid="stForm"] button {
-        background-color: #1D4ED8 !important;
+    /* FIX: Force Number Input layout controls to be small, clean, and contained */
+    div[data-testid="stNumberInput"] > div {
+        max-width: 140px !important;
+    }
+    div[data-testid="stNumberInput"] button {
+        padding: 2px 10px !important;
+        height: 32px !important;
+        background-color: #F1F5F9 !important;
+        color: #475569 !important;
+        border: 1px solid #CBD5E1 !important;
+    }
+    
+    /* Form Execution Button style profile */
+    div[data-testid="stForm"] button[type="submit"] {
+        background-color: #2563EB !important;
         color: white !important;
         font-weight: 600 !important;
         padding: 0.75rem 2rem !important;
-        border-radius: 8px !important;
+        border-radius: 6px !important;
         border: none !important;
         width: 100% !important;
-        box-shadow: 0 4px 6px -1px rgba(29, 78, 216, 0.3);
+        margin-top: 10px;
+    }
+
+    /* FIX: High-Visibility Result Popup Cards (White background text overlay) */
+    .custom-popup-safe {
+        background-color: #FFFFFF !important;
+        border-left: 6px solid #16A34A !important;
+        padding: 20px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        color: #1E293B !important;
+        margin-top: 25px !important;
     }
     
-    /* Hide anchor links */
+    .custom-popup-risk {
+        background-color: #FFFFFF !important;
+        border-left: 6px solid #DC2626 !important;
+        padding: 20px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        color: #1E293B !important;
+        margin-top: 25px !important;
+    }
+    
+    /* Hide specific heading elements link icons */
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
@@ -183,49 +214,4 @@ with st.form("input_marks_form"):
     st.markdown("---")
     st.write("### Student Background & Attendance")
     
-    col_a, col_b, col_c = st.columns(3)
-    with col_a:
-        absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
-    with col_b:
-        failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4])
-    with col_c:
-        study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
-        studytime = st.selectbox("Weekly Independent Study Time", 
-                                 options=list(study_time_opts.keys()), 
-                                 format_func=lambda x: study_time_opts[x])
-        
-    submit_button = st.form_submit_button("Calculate Risk Prediction")
-
-# POP-UP / MODAL EXECUTOR
-if submit_button:
-    if len(grades) == 1:
-        g1_mapped = grades[0]
-        g2_mapped = grades[0]
-    elif len(grades) == 2:
-        g1_mapped = grades[0]
-        g2_mapped = grades[1]
-    else:
-        g1_mapped = int(np.mean(grades[:-1]))
-        g2_mapped = grades[-1]
-        
-    input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
-    input_dict['G1'] = [g1_mapped]
-    input_dict['G2'] = [g2_mapped]
-    input_dict['absences'] = [absences]
-    input_dict['failures'] = [failures]
-    input_dict['studytime'] = [studytime]
-    
-    input_df = pd.DataFrame(input_dict)
-    processed_input = preprocessor.transform(input_df)
-    
-    pred = model.predict(processed_input)[0]
-    prob = model.predict_proba(processed_input)[0][1]
-    
-    # We trigger a crisp, high-visibility toast pop-up notification message in the corner, 
-    # while instantly opening a dedicated overlay box at the top of the interface screen.
-    st.toast("Analysis complete!", icon="🔄")
-    
-    if pred == 1:
-        st.error(f"🔴 **Prediction Verdict: Student is At-Risk**\n\nThe evaluation engine has flagged this profile with a **{prob:.1%}** probability of academic failure. Immediate engagement or support workshops for {short_name} are recommended.")
-    else:
-        st.success(f"🟢 **Prediction Verdict: Student is Safe**\n\nThe evaluation engine predicts this student is well on track to clear the passing requirements. (Calculated failure risk is low: **{prob:.1%}**)")
+    # FIX: Clean, explicitly separated column widths to secure true
