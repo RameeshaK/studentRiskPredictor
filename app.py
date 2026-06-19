@@ -6,13 +6,13 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
-# Configure a professional page layout
-st.set_page_config(page_title="University Academic Risk Predictor", layout="centered")
+# Set up page configuration
+st.set_page_config(page_title="Dynamic Academic Risk Engine", layout="centered")
 
 st.title("🎓 University Student Academic Risk Predictor")
 st.markdown("""
-This decision-support tool assists university faculty members in identifying students who may require early academic intervention. 
-Select the target module and complete the student profile below to evaluate risk status.
+This enterprise decision-support tool dynamically adapts to specific module syllabi structures 
+to identify students who require early academic intervention.
 """)
 
 # Cache model training so it only runs once at startup
@@ -21,7 +21,7 @@ def train_model_live():
     url = "https://raw.githubusercontent.com/KunjalJethwani/StudentPerformance/master/student-por.csv"
     df = pd.read_csv(url, sep=';')
     
-    # Target engineering
+    # Target engineering (1 = At Risk [G3 < 10], 0 = Safe)
     df['at_risk'] = np.where(df['G3'] < 10, 1, 0)
     df = df.drop(columns=['G3'])
     
@@ -47,11 +47,11 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
-# Form layout to group inputs cleanly
-with st.form("prediction_form"):
-    st.subheader("📊 Course & Student Profile Assessment")
+# Enterprise configuration form
+with st.form("dynamic_assessment_form"):
+    st.subheader("📋 Syllabus & Student Profile Mapping")
     
-    # NEW: Module Selection Dropdown
+    # 1. Module Selector
     selected_module = st.selectbox(
         "Select University Module",
         options=[
@@ -59,45 +59,70 @@ with st.form("prediction_form"):
             "COM 742: Enterprise Data Systems",
             "COM 711: Software Engineering Foundations",
             "COM 705: Artificial Intelligence Principles"
-        ],
-        help="Choose the specific module course you are evaluating the student for."
+        ]
+    )
+    
+    # 2. Dynamic Assessment Configuration
+    short_name = selected_module.split(':')[0]
+    total_assignments = st.selectbox(
+        f"Total Continuous Assessments planned for {short_name}",
+        options=[2, 3, 4],
+        index=1, # Default to 3 assignments
+        help="Select how many total coursework components make up this specific module's syllabus."
+    )
+    
+    completed_assignments = st.selectbox(
+        "Number of Assignments currently completed by the student",
+        options=list(range(1, total_assignments + 1)),
+        index=0,
+        help="How many grades are currently available to evaluate?"
     )
     
     st.markdown("---")
+    st.write("📊 **Enter Available Coursework Marks (0 - 20 Marks per Assignment)**")
     
-    # Row 1: Academic Grades
-    col1, col2 = st.columns(2)
-    with col1:
-        g1 = st.slider("Semester 1 Grade (0 - 20 Marks)", 0, 20, 10, 
-                       help=f"The student's final continuous assessment score for {selected_module.split(':')[0]} in Semester 1.")
-    with col2:
-        g2 = st.slider("Semester 2 Grade (0 - 20 Marks)", 0, 20, 10, 
-                       help=f"The student's midterm or current continuous assessment score for {selected_module.split(':')[0]} in Semester 2.")
-        
+    # Dynamically generate sliders based on the number of completed assignments selected
+    grades = []
+    cols = st.columns(completed_assignments)
+    for i in range(completed_assignments):
+        with cols[i]:
+            score = st.slider(f"Assignment {i+1} Mark", 0, 20, 10)
+            grades.append(score)
+            
     st.markdown("---")
+    st.write("🏃‍♂️ **Behavioral & Study Factors**")
     
-    # Row 2: Behavioral Background
-    col3, col4, col5 = st.columns(3)
-    with col3:
-        absences = st.number_input("Total Class Absences", min_value=0, max_value=100, value=4, step=1)
-    with col4:
-        failures = st.selectbox("Previous Course Failures", 
-                                options=[0, 1, 2, 3, 4], 
-                                format_func=lambda x: "None" if x == 0 else f"{x} Classes")
-    with col5:
+    # Behavioral Background Layout
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        absences = st.number_input("Total Class Absences", min_value=0, max_value=100, value=2, step=1)
+    with col_b:
+        failures = st.selectbox("Previous Module Failures", options=[0, 1, 2, 3, 4])
+    with col_c:
         study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
         studytime = st.selectbox("Weekly Study Dedication", 
                                  options=list(study_time_opts.keys()), 
                                  format_func=lambda x: study_time_opts[x])
         
-    # Submit button
-    submit_button = st.form_submit_button("Analyze Risk Status", use_container_width=True)
+    submit_button = st.form_submit_button("Execute Risk Analysis", use_container_width=True)
 
-# Process results
+# Post-submission mapping pipeline
 if submit_button:
+    # Safely map dynamic grades back to the model's static G1 and G2 expectations:
+    # If 1 assignment done: use it for G1 and G2. 
+    # If 2 or more assignments done: average the early ones for G1, use the latest for G2.
+    if len(grades) == 1:
+        g1_mapped = grades[0]
+        g2_mapped = grades[0]
+    else:
+        g1_mapped = int(np.mean(grades[:-1]))
+        g2_mapped = grades[-1]
+        
+    # Construct feature matrix matching original dataset schema
     input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
-    input_dict['G1'] = [g1]
-    input_dict['G2'] = [g2]
+    input_dict['G1'] = [g1_mapped]
+    input_dict['pattern_g2'] = [g2_mapped] # Keeping the mapping aligned
+    input_dict['G2'] = [g2_mapped]
     input_dict['absences'] = [absences]
     input_dict['failures'] = [failures]
     input_dict['studytime'] = [studytime]
@@ -109,14 +134,7 @@ if submit_button:
     prob = model.predict_proba(processed_input)[0][1]
     
     st.subheader("🔍 Analysis Verdict")
-    short_module_name = selected_module.split(":")[0]
-    
     if pred == 1:
-        st.error(f"⚠️ **Action Required:** This student is flagged as **AT-RISK** of failing {short_module_name}. (Risk Confidence: {prob:.2%})")
-        st.markdown(f"""
-        **Recommended Interventions for {short_module_name}:**
-        * Schedule a mandatory academic counseling check-in.
-        * Enroll the student in targeted support labs or peer-assisted tutoring.
-        """)
+        st.error(f"⚠️ **Intervention Flagged:** This student is predicted as **AT-RISK** of failing {short_name}. (Risk Probability: {prob:.2%})")
     else:
-        st.success(f"✅ **Clearance:** This student is projected as **SAFE** to pass {short_module_name}. (Risk Confidence: {1-prob:.2%})")
+        st.success(f"✅ **Clearance:** This student is predicted as **SAFE** to pass {short_name}. (Failure Risk: {prob:.2%})")
