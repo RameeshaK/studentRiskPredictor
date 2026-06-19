@@ -197,14 +197,15 @@ col_config1, col_config2 = st.columns(2)
 with col_config1:
     total_assignments = st.selectbox(
         f"Total assessments in syllabus ({short_name})",
-        options=list(range(2, max_components + 1)),
-        index=2
+        # FIX: Changed the start element from 2 to 1
+        options=list(range(1, max_components + 1)),
+        index=1  # Adjusted index so it highlights a balanced default
     )
 with col_config2:
     completed_assignments = st.selectbox(
         "Assessments completed by student so far",
         options=list(range(1, total_assignments + 1)),
-        index=1
+        index=0
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
