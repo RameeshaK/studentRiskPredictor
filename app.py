@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 # Set up clean page configuration
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-# Custom CSS Injection to change the font and styling to a clean, human-designed aesthetic
+# Custom CSS Injection to change the entire layout look and color profile
 st.markdown("""
     <style>
     /* Change base typography across the entire application */
@@ -17,31 +17,98 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
-    /* Make the title cleaner and less bulky */
+    /* App Canvas Background */
+    .stApp {
+        background-color: #FFFFFF;
+    }
+    
+    /* Title typography */
     h1 {
         font-weight: 700 !important;
-        color: #1E293B !important;
+        color: #0F172A !important;
         font-size: 2.25rem !important;
         letter-spacing: -0.025em !important;
+        margin-bottom: 0.5rem !important;
     }
     
-    /* Subheadings look */
+    /* Section Headers */
     h3 {
         font-weight: 600 !important;
-        color: #334155 !important;
-        font-size: 1.25rem !important;
-        margin-top: 1rem !important;
+        color: #1E293B !important;
+        font-size: 1.3rem !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1rem !important;
     }
     
-    /* Custom subtle styling for form block container */
+    /* Label text formatting */
+    label, .stWidgetLabel p {
+        font-weight: 500 !important;
+        color: #475569 !important;
+        font-size: 0.95rem !important;
+    }
+    
+    /* Custom container styling for Module Configuration block */
+    .config-block {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    /* Custom styling for the main interactive Form container */
     div[data-testid="stForm"] {
         background-color: #F8FAFC;
         border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 24px;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Customizing the Primary Form Action Button */
+    div[data-testid="stForm"] button {
+        background-color: #2563EB !important;
+        color: white !important;
+        font-weight: 600 !important;
+        border: none !important;
+        padding: 0.6rem 2rem !important;
+        border-radius: 6px !important;
+        transition: background-color 0.2s ease !important;
+    }
+    
+    div[data-testid="stForm"] button:hover {
+        background-color: #1D4ED8 !important;
     }
 
-    /* HIDES THE HOVER ANCHOR LINK ICON */
+    /* Customizing Sliders to match the Indigo theme color */
+    .stSlider [data-baseweb="slider"] > div > div {
+        background: #2563EB !important;
+    }
+    .stSlider [data-baseweb="slider"] div[role="slider"] {
+        background-color: #2563EB !important;
+        border: 2px solid #FFFFFF !important;
+    }
+    
+    /* Clear and clean custom metric outputs */
+    .result-box-safe {
+        background-color: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        color: #166534;
+        padding: 16px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .result-box-risk {
+        background-color: #FEF2F2;
+        border: 1px solid #FEE2E2;
+        color: #991B1B;
+        padding: 16px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    /* Hide the automatic anchor link icon next to headers */
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
@@ -50,7 +117,7 @@ st.markdown("""
 
 st.title("Student Academic Risk Predictor")
 st.markdown("""
-This tool helps module coordinators identify students who may need early academic support 
+This decision-support panel helps module coordinators identify students who may need early academic support 
 based on their continuous assessment performance and attendance trends.
 """)
 
@@ -86,6 +153,8 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
+# Using a distinct div wrapper to apply the configuration styling background block
+st.markdown('<div class="config-block">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
 selected_module = st.selectbox(
@@ -142,8 +211,9 @@ with col_config2:
         options=list(range(1, total_assignments + 1)),
         index=1
     )
+st.markdown('</div>', unsafe_allow_html=True)
 
-# Form block for user data entries
+# Form block for user data entries with custom colored button and layouts
 with st.form("input_marks_form"):
     st.write("### Assessment Marks (0 - 20 range)")
     
@@ -195,10 +265,19 @@ if submit_button:
     pred = model.predict(processed_input)[0]
     prob = model.predict_proba(processed_input)[0][1]
     
-    st.write("---")
     st.write("### Prediction Result")
     if pred == 1:
-        st.error(f"Status Flagged: At-Risk of failure (Probability: {prob:.1%})")
-        st.markdown(f"**Suggested action:** Flag student for academic review or practical support in {short_name}.")
+        st.markdown(f"""
+        <div class="result-box-risk">
+            <strong>Status Flagged: At-Risk of failure</strong><br>
+            Estimated failure risk probability is <strong>{prob:.1%}</strong>. 
+            It is recommended to flag this student for academic review or practical support workshops in {short_name}.
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.success(f"Status Clear: Student is on track to pass (Risk Probability: {prob:.1%})")
+        st.markdown(f"""
+        <div class="result-box-safe">
+            <strong>Status Clear: On track to pass</strong><br>
+            The student is currently projected to successfully complete the module requirements. (Failure risk is low: <strong>{prob:.1%}</strong>)
+        </div>
+        """, unsafe_allow_html=True)
