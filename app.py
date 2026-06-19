@@ -7,12 +7,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
 # Configure a professional page layout
-st.set_page_config(page_title="Student Risk Predictor", layout="centered")
+st.set_page_config(page_title="University Academic Risk Predictor", layout="centered")
 
-st.title("🎓 Student Academic Performance Predictor")
+st.title("🎓 University Student Academic Risk Predictor")
 st.markdown("""
-This decision-support tool assists educators in identifying students who may require early academic intervention. 
-Complete the profiles below to evaluate the risk status.
+This decision-support tool assists university faculty members in identifying students who may require early academic intervention. 
+Select the target module and complete the student profile below to evaluate risk status.
 """)
 
 # Cache model training so it only runs once at startup
@@ -49,16 +49,30 @@ preprocessor, model, features, num_cols = train_model_live()
 
 # Form layout to group inputs cleanly
 with st.form("prediction_form"):
-    st.subheader("📊 Student Profile Assessment")
+    st.subheader("📊 Course & Student Profile Assessment")
+    
+    # NEW: Module Selection Dropdown
+    selected_module = st.selectbox(
+        "Select University Module",
+        options=[
+            "COM 763: Advanced Machine Learning",
+            "COM 742: Enterprise Data Systems",
+            "COM 711: Software Engineering Foundations",
+            "COM 705: Artificial Intelligence Principles"
+        ],
+        help="Choose the specific module course you are evaluating the student for."
+    )
+    
+    st.markdown("---")
     
     # Row 1: Academic Grades
     col1, col2 = st.columns(2)
     with col1:
-        g1 = st.slider("First Term Grade (0 - 20 Marks)", 0, 20, 10, 
-                       help="Student's mid-term examination score.")
+        g1 = st.slider("Semester 1 Grade (0 - 20 Marks)", 0, 20, 10, 
+                       help=f"The student's final continuous assessment score for {selected_module.split(':')[0]} in Semester 1.")
     with col2:
-        g2 = st.slider("Second Term Grade (0 - 20 Marks)", 0, 20, 10, 
-                       help="Student's subsequent assessment score.")
+        g2 = st.slider("Semester 2 Grade (0 - 20 Marks)", 0, 20, 10, 
+                       help=f"The student's midterm or current continuous assessment score for {selected_module.split(':')[0]} in Semester 2.")
         
     st.markdown("---")
     
@@ -71,18 +85,16 @@ with st.form("prediction_form"):
                                 options=[0, 1, 2, 3, 4], 
                                 format_func=lambda x: "None" if x == 0 else f"{x} Classes")
     with col5:
-        # Convert numeric choices to friendly text descriptions
         study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
         studytime = st.selectbox("Weekly Study Dedication", 
                                  options=list(study_time_opts.keys()), 
                                  format_func=lambda x: study_time_opts[x])
         
-    # Center the button submission
+    # Submit button
     submit_button = st.form_submit_button("Analyze Risk Status", use_container_width=True)
 
-# Process results outside the form container
+# Process results
 if submit_button:
-    # Construct processing dataframe mapping original schema names
     input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
     input_dict['G1'] = [g1]
     input_dict['G2'] = [g2]
@@ -97,12 +109,14 @@ if submit_button:
     prob = model.predict_proba(processed_input)[0][1]
     
     st.subheader("🔍 Analysis Verdict")
+    short_module_name = selected_module.split(":")[0]
+    
     if pred == 1:
-        st.error(f"⚠️ **Action Required:** This student is flagged as **AT-RISK** of failing. (Risk Confidence: {prob:.2%})")
-        st.markdown("""
-        **Recommended Interventions:**
+        st.error(f"⚠️ **Action Required:** This student is flagged as **AT-RISK** of failing {short_module_name}. (Risk Confidence: {prob:.2%})")
+        st.markdown(f"""
+        **Recommended Interventions for {short_module_name}:**
         * Schedule a mandatory academic counseling check-in.
-        * Enroll the student in peer-assisted tutoring sessions.
+        * Enroll the student in targeted support labs or peer-assisted tutoring.
         """)
     else:
-        st.success(f"✅ **Clearance:** This student is projected as **SAFE** to pass. (Risk Confidence: {1-prob:.2%})")
+        st.success(f"✅ **Clearance:** This student is projected as **SAFE** to pass {short_module_name}. (Risk Confidence: {1-prob:.2%})")
