@@ -280,7 +280,7 @@ if submit_button:
 st.markdown("<br><br>", unsafe_allow_html=True)
 
 # FIX: Wrap the charts behind an interactive toggle checkbox button
-show_metrics = st.checkbox("🔍 Show Model Evaluation Engine Metrics (Confusion Matrix & Feature Importance)")
+show_metrics = st.checkbox("Show Model Evaluation Engine Metrics (Confusion Matrix & Feature Importance)")
 
 if show_metrics:
     st.write("### Model Evaluation Engine Metrics")
