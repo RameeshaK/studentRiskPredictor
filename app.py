@@ -150,7 +150,6 @@ def train_model_live():
 preprocessor, model, features, num_cols = train_model_live()
 
 # Module Configuration Card
-st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
 selected_module = st.selectbox(
