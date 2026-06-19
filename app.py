@@ -8,11 +8,14 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from streamlit_option_menu import option_menu
 
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
+# Custom CSS styling injection 
 st.markdown("""
     <style>
+    /* Styling the main background */
     .stApp {
         background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
                           url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop");
@@ -25,6 +28,7 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
+    /* Styling content containers */
     .module-config-card {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -61,6 +65,7 @@ st.markdown("""
         margin-top: 0px !important;
     }
     
+    /* Custom input controls sizing overrides */
     div[data-testid="stNumberInput"] {
         max-width: 100% !important;
     }
@@ -105,6 +110,14 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
+    /* Force custom sidebar look matching user requirements */
+    [data-testid="stSidebar"] {
+        background-color: #3B82F6 !important;
+    }
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {
+        color: #FFFFFF !important;
+    }
+    
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
@@ -144,10 +157,34 @@ def train_model_live():
 
 preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
 
-# ---- NAVIGATION BAR COMPONENT ----
-st.sidebar.title("Navigation Menu")
-page = st.sidebar.radio("Go to:", ["Home", "Evaluation Metrics"])
-
+# ---- CUSTOM SIDEBAR NAVIGATION BAR (MATCHING IMAGE SPECIFICATIONS) ----
+with st.sidebar:
+    st.markdown("<br><h2 style='color: white; font-weight: 700; margin-left: 10px; font-size: 1.6rem;'>Menu Panel</h2><hr style='border-color: rgba(255,255,255,0.3);'>", unsafe_allow_html=True)
+    
+    page = option_menu(
+        menu_title=None, # Hides header to replicate screenshot style
+        options=["Home", "Evaluation Metrics"],
+        icons=["house", "bar-chart-line"], # Matching Bootstrap icons
+        menu_icon="cast",
+        default_index=0,
+        styles={
+            "container": {"padding": "0!important", "background-color": "#3B82F6"},
+            "icon": {"color": "white", "font-size": "18px"}, 
+            "nav-link": {
+                "font-size": "16px", 
+                "text-align": "left", 
+                "margin": "4px 10px", 
+                "color": "white",
+                "font-weight": "400",
+                "border-radius": "8px"
+            },
+            "nav-link-selected": {
+                "background-color": "#FFFFFF", 
+                "color": "#2563EB !important",
+                "font-weight": "600"
+            }
+        }
+    )
 
 if page == "Home":
     st.title("Student Academic Risk Predictor")
@@ -283,7 +320,6 @@ if page == "Home":
             </div>
             """, unsafe_allow_html=True)
 
-
 elif page == "Evaluation Metrics":
     st.title("Model Evaluation Engine Metrics")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review historical dataset trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
@@ -291,7 +327,6 @@ elif page == "Evaluation Metrics":
     st.write("### Model Validation Metrics & Performance Evidence")
     st.write("Performance evaluation metrics recorded over a stratified validation data split:")
     
-    # Render academic metrics table directly into UI interface space
     metrics_data = {
         "Evaluation Metric": ["Overall Accuracy", "Sensitivity (Recall)", "Precision", "F1-Score"],
         "Performance Value": ["84.5%", "88.2%", "79.1%", "83.4%"],
@@ -304,10 +339,9 @@ elif page == "Evaluation Metrics":
     }
     st.table(pd.DataFrame(metrics_data))
     st.markdown('</div>', unsafe_allow_html=True)
-    
+
     st.write("### Algorithm Diagnostic Visualizations")
     
-    # Perfectly symmetrical 50/50 display layout
     plot_col1, plot_col2 = st.columns(2)
     
     with plot_col1:
