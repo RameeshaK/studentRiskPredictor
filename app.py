@@ -65,20 +65,32 @@ st.markdown("""
     div[data-testid="stNumberInput"] {
         max-width: 100% !important;
     }
+    div[data-testid="stNumberInput"] > div {
+        border-radius: 8px !important;
+        background-color: #F8FAFC !important;
+    }
+    div[data-testid="stNumberInput"] input {
+        background-color: #F8FAFC !important;
+        color: #0F172A !important;
+        border: none !important;
+    }
     div[data-testid="stNumberInput"] button {
         background-color: #F1F5F9 !important;
         color: #475569 !important;
-        border: 1px solid #CBD5E1 !important;
-        width: auto !important;
-        padding: 0px 12px !important;
+        border: 1px solid #E2E8F0 !important;
+        padding: 0px 14px !important;
         height: 100% !important;
-        border-radius: 0px !important;
+        transition: background-color 0.2s ease;
+    }
+    div[data-testid="stNumberInput"] button:hover {
+        background-color: #E2E8F0 !important;
+        color: #0F172A !important;
     }
     
     div[data-testid="stForm"] button[type="submit"] {
         background-color: #2563EB !important;
         color: white !important;
-        font-weight: 600 !important;
+        font-weight: 600 importat;
         padding: 0.75rem 2rem !important;
         border-radius: 6px !important;
         border: none !important;
@@ -154,7 +166,7 @@ def train_model_live():
 preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
 
 with st.sidebar:
-    st.markdown("<br><h2 style='color: white; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel</h2><hr style='border-color: rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
+    st.markdown("<br><h2 style='color: white; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel <span style='color: #FFFFFF; font-weight: 400; font-size: 1.3rem; margin-left: 4px;'>&gt;&gt;</span></h2><hr style='border-color: rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
     
     page = option_menu(
         menu_title=None,
@@ -319,7 +331,7 @@ if page == "Home":
 elif page == "Evaluation Metrics":
     st.title("Model Evaluation Engine Metrics")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review historical dataset trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
-    
+
     st.write("### Model Validation Metrics & Performance Evidence")
     st.write("Performance evaluation metrics recorded over a stratified validation data split:")
     
@@ -335,7 +347,7 @@ elif page == "Evaluation Metrics":
     }
     st.table(pd.DataFrame(metrics_data))
     st.markdown('</div>', unsafe_allow_html=True)
-    
+
     st.write("### Algorithm Diagnostic Visualizations")
     
     plot_col1, plot_col2 = st.columns(2)
