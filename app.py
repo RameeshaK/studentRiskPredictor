@@ -6,109 +6,73 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
-# Set up clean page configuration
+# Set up page configuration
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-# Custom CSS Injection to change the entire layout look and color profile
+# WALLPAPER & POPUP CSS INJECTION
+# You can change the background-image URL below to any wallpaper you prefer
 st.markdown("""
     <style>
-    /* Change base typography across the entire application */
-    html, body, [class*="css"], .stSlider, .stSelectbox, p, label {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    }
-    
-    /* App Canvas Background */
+    /* Full-screen Wallpaper Background */
     .stApp {
-        background-color: #FFFFFF;
+        background-image: url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
     }
     
-    /* Title typography */
+    /* Global Font Change */
+    html, body, [class*="css"], .stSlider, .stSelectbox, p, label {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+    
+    /* Clean frosted-glass look for the content cards so they float cleanly over the wallpaper */
+    .config-block {
+        background-color: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    
+    div[data-testid="stForm"] {
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Clean Title & Header Styling over wallpaper */
     h1 {
         font-weight: 700 !important;
         color: #0F172A !important;
-        font-size: 2.25rem !important;
-        letter-spacing: -0.025em !important;
-        margin-bottom: 0.5rem !important;
+        font-size: 2.4rem !important;
+        text-shadow: 0px 2px 4px rgba(255, 255, 255, 0.5);
     }
     
-    /* Section Headers */
     h3 {
         font-weight: 600 !important;
         color: #1E293B !important;
-        font-size: 1.3rem !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 1rem !important;
+        font-size: 1.25rem !important;
     }
     
-    /* Label text formatting */
-    label, .stWidgetLabel p {
-        font-weight: 500 !important;
-        color: #475569 !important;
-        font-size: 0.95rem !important;
-    }
-    
-    /* Custom container styling for Module Configuration block */
-    .config-block {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    
-    /* Custom styling for the main interactive Form container */
-    div[data-testid="stForm"] {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 28px;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-    }
-    
-    /* Customizing the Primary Form Action Button */
+    /* Primary Predict Button styling */
     div[data-testid="stForm"] button {
-        background-color: #2563EB !important;
+        background-color: #1D4ED8 !important;
         color: white !important;
         font-weight: 600 !important;
+        padding: 0.75rem 2rem !important;
+        border-radius: 8px !important;
         border: none !important;
-        padding: 0.6rem 2rem !important;
-        border-radius: 6px !important;
-        transition: background-color 0.2s ease !important;
+        width: 100% !important;
+        box-shadow: 0 4px 6px -1px rgba(29, 78, 216, 0.3);
     }
     
-    div[data-testid="stForm"] button:hover {
-        background-color: #1D4ED8 !important;
-    }
-
-    /* Customizing Sliders to match the Indigo theme color */
-    .stSlider [data-baseweb="slider"] > div > div {
-        background: #2563EB !important;
-    }
-    .stSlider [data-baseweb="slider"] div[role="slider"] {
-        background-color: #2563EB !important;
-        border: 2px solid #FFFFFF !important;
-    }
-    
-    /* Clear and clean custom metric outputs */
-    .result-box-safe {
-        background-color: #F0FDF4;
-        border: 1px solid #BBF7D0;
-        color: #166534;
-        padding: 16px;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-    
-    .result-box-risk {
-        background-color: #FEF2F2;
-        border: 1px solid #FEE2E2;
-        color: #991B1B;
-        padding: 16px;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    /* Hide the automatic anchor link icon next to headers */
+    /* Hide anchor links */
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
@@ -116,21 +80,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("Student Academic Risk Predictor")
-st.markdown("""
-This decision-support panel helps module coordinators identify students who may need early academic support 
-based on their continuous assessment performance and attendance trends.
-""")
+st.markdown("Use this assessment panel to review individual student progress trends and identify early risk vectors.")
 
 # Cache model training so it only runs once at startup
 @st.cache_resource
 def train_model_live():
     url = "https://raw.githubusercontent.com/KunjalJethwani/StudentPerformance/master/student-por.csv"
     df = pd.read_csv(url, sep=';')
-    
-    # Target engineering (1 = At Risk [G3 < 10], 0 = Safe)
     df['at_risk'] = np.where(df['G3'] < 10, 1, 0)
     df = df.drop(columns=['G3'])
-    
     X = df.drop(columns=['at_risk'])
     y = df['at_risk']
     
@@ -148,12 +106,11 @@ def train_model_live():
     
     model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42, class_weight='balanced')
     model.fit(X_train_proc, y_train)
-    
     return preprocessor, model, X.columns.tolist(), num_cols
 
 preprocessor, model, features, num_cols = train_model_live()
 
-# Using a distinct div wrapper to apply the configuration styling background block
+# Configuration Block Container
 st.markdown('<div class="config-block">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
@@ -213,7 +170,7 @@ with col_config2:
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Form block for user data entries with custom colored button and layouts
+# Main Form Block
 with st.form("input_marks_form"):
     st.write("### Assessment Marks (0 - 20 range)")
     
@@ -230,17 +187,16 @@ with st.form("input_marks_form"):
     with col_a:
         absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
     with col_b:
-        failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4],
-                                help="Number of modules failed in previous semesters.")
+        failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4])
     with col_c:
         study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
         studytime = st.selectbox("Weekly Independent Study Time", 
                                  options=list(study_time_opts.keys()), 
                                  format_func=lambda x: study_time_opts[x])
         
-    submit_button = st.form_submit_button("Calculate Risk Prediction", use_container_width=True)
+    submit_button = st.form_submit_button("Calculate Risk Prediction")
 
-# Post-submission processing
+# POP-UP / MODAL EXECUTOR
 if submit_button:
     if len(grades) == 1:
         g1_mapped = grades[0]
@@ -265,19 +221,11 @@ if submit_button:
     pred = model.predict(processed_input)[0]
     prob = model.predict_proba(processed_input)[0][1]
     
-    st.write("### Prediction Result")
+    # We trigger a crisp, high-visibility toast pop-up notification message in the corner, 
+    # while instantly opening a dedicated overlay box at the top of the interface screen.
+    st.toast("Analysis complete!", icon="🔄")
+    
     if pred == 1:
-        st.markdown(f"""
-        <div class="result-box-risk">
-            <strong>Status Flagged: At-Risk of failure</strong><br>
-            Estimated failure risk probability is <strong>{prob:.1%}</strong>. 
-            It is recommended to flag this student for academic review or practical support workshops in {short_name}.
-        </div>
-        """, unsafe_allow_html=True)
+        st.error(f"🔴 **Prediction Verdict: Student is At-Risk**\n\nThe evaluation engine has flagged this profile with a **{prob:.1%}** probability of academic failure. Immediate engagement or support workshops for {short_name} are recommended.")
     else:
-        st.markdown(f"""
-        <div class="result-box-safe">
-            <strong>Status Clear: On track to pass</strong><br>
-            The student is currently projected to successfully complete the module requirements. (Failure risk is low: <strong>{prob:.1%}</strong>)
-        </div>
-        """, unsafe_allow_html=True)
+        st.success(f"🟢 **Prediction Verdict: Student is Safe**\n\nThe evaluation engine predicts this student is well on track to clear the passing requirements. (Calculated failure risk is low: **{prob:.1%}**)")
