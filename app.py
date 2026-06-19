@@ -1,20 +1,15 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from streamlit_option_menu import option_menu
 
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
 st.markdown("""
     <style>
-    /* 1. Global Page Background and Core Font Setup */
     .stApp {
         background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
                           url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop");
@@ -27,7 +22,6 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* 2. Main Content Card Styles */
     .module-config-card {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -64,30 +58,17 @@ st.markdown("""
         margin-top: 0px !important;
     }
     
-    /* 3. Input Controls Customizations */
     div[data-testid="stNumberInput"] {
         max-width: 100% !important;
-    }
-    div[data-testid="stNumberInput"] > div {
-        border-radius: 8px !important;
-        background-color: #F8FAFC !important;
-    }
-    div[data-testid="stNumberInput"] input {
-        background-color: #F8FAFC !important;
-        color: #0F172A !important;
-        border: none !important;
     }
     div[data-testid="stNumberInput"] button {
         background-color: #F1F5F9 !important;
         color: #475569 !important;
-        border: 1px solid #E2E8F0 !important;
-        padding: 0px 14px !important;
+        border: 1px solid #CBD5E1 !important;
+        width: auto !important;
+        padding: 0px 12px !important;
         height: 100% !important;
-        transition: background-color 0.2s ease;
-    }
-    div[data-testid="stNumberInput"] button:hover {
-        background-color: #E2E8F0 !important;
-        color: #0F172A !important;
+        border-radius: 0px !important;
     }
     
     div[data-testid="stForm"] button[type="submit"] {
@@ -101,7 +82,6 @@ st.markdown("""
         margin-top: 10px !important;
     }
 
-    /* 4. Notification Alerts */
     .custom-popup-safe {
         background-color: #FFFFFF !important;
         border-left: 6px solid #16A34A !important;
@@ -122,45 +102,14 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
-    /* 5. Navigation Sidebar Panel & Making it Permanent */
-    [data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 1px solid #E2E8F0 !important;
-    }
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {
-        color: #0F172A !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }
-    
-    [data-testid="stSidebar"] .nav-link-text {
-        font-family: 'Inter', sans-serif !important;
-    }
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-        font-family: 'Inter', sans-serif !important;
-    }
-    
-    /* PERMANENT SIDEBAR FIX: Hides the default expand/collapse chevron buttons completely */
-    [data-testid="stSidebarCollapsedControl"], 
-    button[data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-    }
-    
-    /* Disables native list navigations */
-    [data-testid="stSidebarNav"] {
-        display: none !important;
-    }
-    
-    /* Blocks text engine leaks inside sidebar structures */
-    [data-testid="stSidebar"] button div,
-    [data-testid="stSidebar"] .element-container:has(button) {
-        display: none !important;
-    }
-    
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
+st.title("Student Academic Risk Predictor")
+st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
 @st.cache_resource
 def train_model_live():
@@ -182,229 +131,139 @@ def train_model_live():
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     X_train_proc = preprocessor.fit_transform(X_train)
-    X_test_proc = preprocessor.transform(X_test)
     
     model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42, class_weight='balanced')
     model.fit(X_train_proc, y_train)
-    
-    cat_encoder = preprocessor.named_transformers_['cat']
-    encoded_cat_cols = cat_encoder.get_feature_names_out(cat_cols).tolist()
-    all_features = num_cols + encoded_cat_cols
-    
-    return preprocessor, model, X.columns.tolist(), num_cols, X_test_proc, y_test, all_features
+    return preprocessor, model, X.columns.tolist(), num_cols
 
-preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
+preprocessor, model, features, num_cols = train_model_live()
 
-with st.sidebar:
-    # >> Removed from the title header layout below
-    st.markdown("<br><h2 style='color: #0F172A; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel</h2><hr style='border-color: #E2E8F0;'>", unsafe_allow_html=True)
-    
-    page = option_menu(
-        menu_title=None,
-        options=["Home", "Evaluation Metrics"],
-        icons=["house", "bar-chart-line"],
-        menu_icon=None,
-        default_index=0,
-        styles={
-            "container": {"padding": "0!important", "background-color": "#FFFFFF"},
-            "icon": {"color": "#475569", "font-size": "18px"}, 
-            "nav-link": {
-                "font-size": "16px", 
-                "text-align": "left", 
-                "margin": "4px 10px", 
-                "color": "#475569",
-                "font-weight": "400",
-                "border-radius": "8px",
-                "font-family": "'Inter', sans-serif"
-            },
-            "nav-link-selected": {
-                "background-color": "#F1F5F9", 
-                "color": "#2563EB !important",
-                "font-weight": "600"
-            }
-        }
+st.write("### Module Configuration")
+
+selected_module = st.selectbox(
+    "Select Module",
+    options=[
+        "COM 763: Advanced Machine Learning",
+        "COM 742: Enterprise Data Systems",
+        "COM 711: Software Engineering Foundations",
+        "COM 705: Artificial Intelligence Principles"
+    ]
+)
+
+syllabus_blueprints = {
+    "COM 763: Advanced Machine Learning": [
+        "Coursework 1: Exploratory Data Analysis Portfolio",
+        "Coursework 2: Model Training & Hyperparameter GridSearch",
+        "Coursework 3: Streamlit Deployment & Technical Report",
+        "Final Examination Component"
+    ],
+    "COM 742: Enterprise Data Systems": [
+        "Coursework 1: Relational Schema & SQL Design",
+        "Coursework 2: NoSQL Database Scaling Lab",
+        "Coursework 3: Distributed Data Infrastructure Project",
+        "Final Examination Component"
+    ],
+    "COM 711: Software Engineering Foundations": [
+        "Coursework 1: Requirements Specification & UML Diagrams",
+        "Coursework 2: Object-Oriented Programming Core Build",
+        "Coursework 3: System Testing & CI/CD Validation",
+        "Final Examination Component"
+    ],
+    "COM 705: Artificial Intelligence Principles": [
+        "Coursework 1: Search Algorithm Optimization Lab",
+        "Coursework 2: Neural Network Implementation Project",
+        "Coursework 3: Ethical AI Case Study Defense",
+        "Final Examination Component"
+    ]
+}
+
+short_name = selected_module.split(':')[0]
+active_syllabus = syllabus_blueprints[selected_module]
+max_components = len(active_syllabus)
+
+col_config1, col_config2 = st.columns(2)
+with col_config1:
+    total_assignments = st.selectbox(
+        f"Total assessments in syllabus ({short_name})",
+        options=list(range(1, max_components + 1)),
+        index=1
     )
-
-if page == "Home":
-    st.title("Student Academic Risk Predictor")
-    st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
-
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
-    st.write("### Module Configuration")
-
-    selected_module = st.selectbox(
-        "Select Module",
-        options=[
-            "COM 763: Advanced Machine Learning",
-            "COM 742: Enterprise Data Systems",
-            "COM 711: Software Engineering Foundations",
-            "COM 705: Artificial Intelligence Principles"
-        ]
+with col_config2:
+    completed_assignments = st.selectbox(
+        "Assessments completed by student so far",
+        options=list(range(1, total_assignments + 1)),
+        index=0
     )
+st.markdown('</div>', unsafe_allow_html=True)
 
-    syllabus_blueprints = {
-        "COM 763: Advanced Machine Learning": [
-            "Coursework 1: Exploratory Data Analysis Portfolio",
-            "Coursework 2: Model Training & Hyperparameter GridSearch",
-            "Coursework 3: Streamlit Deployment & Technical Report",
-            "Final Examination Component"
-        ],
-        "COM 742: Enterprise Data Systems": [
-            "Coursework 1: Relational Schema & SQL Design",
-            "Coursework 2: NoSQL Database Scaling Lab",
-            "Coursework 3: Distributed Data Infrastructure Project",
-            "Final Examination Component"
-        ],
-        "COM 711: Software Engineering Foundations": [
-            "Coursework 1: Requirements Specification & UML Diagrams",
-            "Coursework 2: Object-Oriented Programming Core Build",
-            "Coursework 3: System Testing & CI/CD Validation",
-            "Final Examination Component"
-        ],
-        "COM 705: Artificial Intelligence Principles": [
-            "Coursework 1: Search Algorithm Optimization Lab",
-            "Coursework 2: Neural Network Implementation Project",
-            "Coursework 3: Ethical AI Case Study Defense",
-            "Final Examination Component"
-        ]
-    }
-
-    short_name = selected_module.split(':')[0]
-    active_syllabus = syllabus_blueprints[selected_module]
-    max_components = len(active_syllabus)
-
-    col_config1, col_config2 = st.columns(2)
-    with col_config1:
-        total_assignments = st.selectbox(
-            f"Total assessments in syllabus ({short_name})",
-            options=list(range(1, max_components + 1)),
-            index=1
-        )
-    with col_config2:
-        completed_assignments = st.selectbox(
-            "Assessments completed by student so far",
-            options=list(range(1, total_assignments + 1)),
-            index=0
-        )
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    with st.form("input_marks_form"):
-        st.write("### Assessment Marks (0 - 20 range)")
-        
-        grades = []
-        for i in range(completed_assignments):
-            assignment_label = active_syllabus[i]
-            score = st.slider(assignment_label, min_value=0, max_value=20, value=10)
-            grades.append(score)
-                
-        st.markdown("---")
-        st.write("### Student Background & Attendance")
-        
-        col_a, col_b, col_c = st.columns([1, 1.2, 1.3])
-        with col_a:
-            absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
-        with col_b:
-            failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4])
-        with col_c:
-            study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
-            studytime = st.selectbox("Weekly Independent Study Time", 
-                                     options=list(study_time_opts.keys()), 
-                                     format_func=lambda x: study_time_opts[x])
+with st.form("input_marks_form"):
+    st.write("### Assessment Marks (0 - 20 range)")
+    
+    grades = []
+    for i in range(completed_assignments):
+        assignment_label = active_syllabus[i]
+        score = st.slider(assignment_label, min_value=0, max_value=20, value=10)
+        grades.append(score)
             
-        submit_button = st.form_submit_button("Calculate Risk Prediction")
+    st.markdown("---")
+    st.write("### Student Background & Attendance")
+    
+    col_a, col_b, col_c = st.columns([1, 1.2, 1.3])
+    with col_a:
+        absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
+    with col_b:
+        failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4])
+    with col_c:
+        study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
+        studytime = st.selectbox("Weekly Independent Study Time", 
+                                 options=list(study_time_opts.keys()), 
+                                 format_func=lambda x: study_time_opts[x])
+        
+    submit_button = st.form_submit_button("Calculate Risk Prediction")
 
-    if submit_button:
-        if len(grades) == 1:
-            g1_mapped = grades[0]
-            g2_mapped = grades[0]
-        elif len(grades) == 2:
-            g1_mapped = grades[0]
-            g2_mapped = grades[1]
-        else:
-            g1_mapped = int(np.mean(grades[:-1]))
-            g2_mapped = grades[-1]
-            
-        input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
-        input_dict['G1'] = [g1_mapped]
-        input_dict['G2'] = [g2_mapped]
-        input_dict['absences'] = [absences]
-        input_dict['failures'] = [failures]
-        input_dict['studytime'] = [studytime]
+if submit_button:
+    if len(grades) == 1:
+        g1_mapped = grades[0]
+        g2_mapped = grades[0]
+    elif len(grades) == 2:
+        g1_mapped = grades[0]
+        g2_mapped = grades[1]
+    else:
+        g1_mapped = int(np.mean(grades[:-1]))
+        g2_mapped = grades[-1]
         
-        input_df = pd.DataFrame(input_dict)
-        processed_input = preprocessor.transform(input_df)
-        
-        pred = model.predict(processed_input)[0]
-        prob = model.predict_proba(processed_input)[0][1]
-        
-        st.toast("Analysis complete!", icon="🔄")
-        
-        if pred == 1:
-            st.markdown(f"""
-            <div class="custom-popup-risk">
-                <h4 style="color: #DC2626; margin: 0 0 8px 0; font-weight:700;">⚠️ Prediction Verdict: Student is At-Risk</h4>
-                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #0F172A;">
-                    The evaluation engine has flagged this student profile with an estimated failure risk probability of <strong>{prob:.1%}</strong>. 
-                    Immediate outreach or targeted support sessions for <strong>{short_name}</strong> are highly recommended.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="custom-popup-safe">
-                <h4 style="color: #16A34A; margin: 0 0 8px 0; font-weight:700;">✅ Prediction Verdict: Student is Safe</h4>
-                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #0F172A;">
-                    The evaluation engine predicts this student is currently on track to clear all pass requirements. 
-                    The calculated module failure risk is low (<strong>{prob:.1%}</strong>).
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-elif page == "Evaluation Metrics":
-    st.title("Model Evaluation Engine Metrics")
-    st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review historical dataset trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
+    input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
+    input_dict['G1'] = [g1_mapped]
+    input_dict['G2'] = [g2_mapped]
+    input_dict['absences'] = [absences]
+    input_dict['failures'] = [failures]
+    input_dict['studytime'] = [studytime]
     
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
-    st.write("### Model Validation Metrics & Performance Evidence")
-    st.write("Performance evaluation metrics recorded over a stratified validation data split:")
+    input_df = pd.DataFrame(input_dict)
+    processed_input = preprocessor.transform(input_df)
     
-    metrics_data = {
-        "Evaluation Metric": ["Overall Accuracy", "Sensitivity (Recall)", "Precision", "F1-Score"],
-        "Performance Value": ["84.5%", "88.2%", "79.1%", "83.4%"],
-        "Operational Significance": [
-            "Total student configurations predicted correctly.",
-            "Efficiency at capturing true at-risk cases accurately.",
-            "Probability that a flagged risk profile is truly at-risk.",
-            "Harmonic mean validation score balancing precision and recall."
-        ]
-    }
-    st.table(pd.DataFrame(metrics_data))
-    st.markdown('</div>', unsafe_allow_html=True)
+    pred = model.predict(processed_input)[0]
+    prob = model.predict_proba(processed_input)[0][1]
     
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
-    st.write("### Algorithm Diagnostic Visualizations")
+    st.toast("Analysis complete!", icon="🔄")
     
-    plot_col1, plot_col2 = st.columns(2)
-    
-    with plot_col1:
-        fig_cm, ax_cm = plt.subplots(figsize=(4.5, 4))
-        y_pred = model.predict(X_test_proc)
-        cm = confusion_matrix(y_test, y_pred)
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Safe', 'At-Risk'])
-        disp.plot(ax=ax_cm, cmap='Blues', values_format='d', colorbar=False)
-        ax_cm.set_title('Confusion Matrix', fontsize=11, fontweight='bold')
-        plt.tight_layout()
-        st.pyplot(fig_cm, use_container_width=True)
-    
-    with plot_col2:
-        fig_fi, ax_fi = plt.subplots(figsize=(4.5, 4))
-        importances = model.feature_importances_
-        feat_importances = pd.Series(importances, index=all_features).sort_values(ascending=False).head(8)
-        sns.barplot(x=feat_importances.values, y=feat_importances.index, ax=ax_fi, palette='Blues_r')
-        ax_fi.set_title('Top Feature Importances', fontsize=11, fontweight='bold')
-        ax_fi.set_xlabel('Relative Score', fontsize=9)
-        ax_fi.tick_params(axis='both', labelsize=9)
-        plt.tight_layout()
-        st.pyplot(fig_fi, use_container_width=True)
-        
-    st.markdown('</div>', unsafe_allow_html=True)
+    if pred == 1:
+        st.markdown(f"""
+        <div class="custom-popup-risk">
+            <h4 style="color: #DC2626; margin: 0 0 8px 0; font-weight:700;">⚠️ Prediction Verdict: Student is At-Risk</h4>
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #0F172A;">
+                The evaluation engine has flagged this student profile with an estimated failure risk probability of <strong>{prob:.1%}</strong>. 
+                Immediate outreach or targeted support sessions for <strong>{short_name}</strong> are highly recommended.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div class="custom-popup-safe">
+            <h4 style="color: #16A34A; margin: 0 0 8px 0; font-weight:700;">✅ Prediction Verdict: Student is Safe</h4>
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #0F172A;">
+                The evaluation engine predicts this student is currently on track to clear all pass requirements. 
+                The calculated module failure risk is low (<strong>{prob:.1%}</strong>).
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
