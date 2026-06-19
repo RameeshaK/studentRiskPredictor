@@ -6,13 +6,10 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
-# Set up page configuration
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-# FIX: Robust layer rendering style stack
 st.markdown("""
     <style>
-    /* Apply background and overlay directly to the main app container */
     .stApp {
         background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
                           url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop");
@@ -21,12 +18,10 @@ st.markdown("""
         background-attachment: fixed;
     }
     
-    /* Global Typography Reset */
     html, body, [class*="css"], .stSlider, .stSelectbox, p, label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Solid high-visibility configuration wrapper card */
     .module-config-card {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -36,7 +31,6 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     
-    /* Solid high-visibility main input form card */
     div[data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -45,13 +39,11 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
     }
     
-    /* Ensure label text contrast stays dark and legible */
     label, .stWidgetLabel p {
         color: #0F172A !important;
         font-weight: 500 !important;
     }
     
-    /* App text spacing styles */
     h1 {
         font-weight: 700 !important;
         color: #0F172A !important;
@@ -66,19 +58,19 @@ st.markdown("""
         margin-top: 0px !important;
     }
     
-    /* Clean, tiny dimensions for the increment step buttons */
-    div[data-testid="stNumberInput"] > div {
-        max-width: 140px !important;
+    div[data-testid="stNumberInput"] {
+        max-width: 100% !important;
     }
     div[data-testid="stNumberInput"] button {
-        padding: 2px 10px !important;
-        height: 32px !important;
         background-color: #F1F5F9 !important;
         color: #475569 !important;
         border: 1px solid #CBD5E1 !important;
+        width: auto !important;
+        padding: 0px 12px !important;
+        height: 100% !important;
+        border-radius: 0px !important;
     }
     
-    /* Primary click action form submit button */
     div[data-testid="stForm"] button[type="submit"] {
         background-color: #2563EB !important;
         color: white !important;
@@ -87,10 +79,9 @@ st.markdown("""
         border-radius: 6px !important;
         border: none !important;
         width: 100% !important;
-        margin-top: 10px;
+        margin-top: 10px !important;
     }
 
-    /* Prediction output result cards styling layout rules */
     .custom-popup-safe {
         background-color: #FFFFFF !important;
         border-left: 6px solid #16A34A !important;
@@ -111,7 +102,6 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
-    /* Drop link anchor icons completely */
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
@@ -121,7 +111,6 @@ st.markdown("""
 st.title("Student Academic Risk Predictor")
 st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
-# Cache model training so it only runs once at startup
 @st.cache_resource
 def train_model_live():
     url = "https://raw.githubusercontent.com/KunjalJethwani/StudentPerformance/master/student-por.csv"
@@ -149,7 +138,7 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
-# Module Configuration Card
+st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
 selected_module = st.selectbox(
@@ -197,9 +186,8 @@ col_config1, col_config2 = st.columns(2)
 with col_config1:
     total_assignments = st.selectbox(
         f"Total assessments in syllabus ({short_name})",
-        # FIX: Changed the start element from 2 to 1
         options=list(range(1, max_components + 1)),
-        index=1  # Adjusted index so it highlights a balanced default
+        index=1
     )
 with col_config2:
     completed_assignments = st.selectbox(
@@ -209,7 +197,6 @@ with col_config2:
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Main input forms structure block
 with st.form("input_marks_form"):
     st.write("### Assessment Marks (0 - 20 range)")
     
@@ -235,7 +222,6 @@ with st.form("input_marks_form"):
         
     submit_button = st.form_submit_button("Calculate Risk Prediction")
 
-# Execution parsing outcomes logic
 if submit_button:
     if len(grades) == 1:
         g1_mapped = grades[0]
