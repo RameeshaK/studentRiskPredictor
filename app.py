@@ -47,72 +47,71 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
-# Enterprise configuration form
-with st.form("dynamic_assessment_form"):
-    st.subheader("📋 Syllabus & Student Profile Mapping")
-    
-    # 1. Module Selector
-    selected_module = st.selectbox(
-        "Select University Module",
-        options=[
-            "COM 763: Advanced Machine Learning",
-            "COM 742: Enterprise Data Systems",
-            "COM 711: Software Engineering Foundations",
-            "COM 705: Artificial Intelligence Principles"
-        ]
-    )
-    
-    # Define real, practical university assessment blueprints for each module
-    syllabus_blueprints = {
-        "COM 763: Advanced Machine Learning": [
-            "Coursework 1: Exploratory Data Analysis Portfolio",
-            "Coursework 2: Model Training & Hyperparameter GridSearch",
-            "Coursework 3: Streamlit Deployment & Technical Report",
-            "Final Examination Component"
-        ],
-        "COM 742: Enterprise Data Systems": [
-            "Coursework 1: Relational Schema & SQL Design",
-            "Coursework 2: NoSQL Database Scaling Lab",
-            "Coursework 3: Distributed Data Infrastructure Project",
-            "Final Examination Component"
-        ],
-        "COM 711: Software Engineering Foundations": [
-            "Coursework 1: Requirements Specification & UML Diagrams",
-            "Coursework 2: Object-Oriented Programming Core Build",
-            "Coursework 3: System Testing & CI/CD Validation",
-            "Final Examination Component"
-        ],
-        "COM 705: Artificial Intelligence Principles": [
-            "Coursework 1: Search Algorithm Optimization Lab",
-            "Coursework 2: Neural Network Implementation Project",
-            "Coursework 3: Ethical AI Case Study Defense",
-            "Final Examination Component"
-        ]
-    }
-    
-    short_name = selected_module.split(':')[0]
-    active_syllabus = syllabus_blueprints[selected_module]
-    max_components = len(active_syllabus)
-    
-    # 2. Dynamic Assessment Configuration
+st.subheader("📋 Syllabus & Student Profile Mapping")
+
+# FIX: Moved these selectors OUTSIDE the form so they trigger an instant screen refresh when changed!
+selected_module = st.selectbox(
+    "Select University Module",
+    options=[
+        "COM 763: Advanced Machine Learning",
+        "COM 742: Enterprise Data Systems",
+        "COM 711: Software Engineering Foundations",
+        "COM 705: Artificial Intelligence Principles"
+    ]
+)
+
+syllabus_blueprints = {
+    "COM 763: Advanced Machine Learning": [
+        "Coursework 1: Exploratory Data Analysis Portfolio",
+        "Coursework 2: Model Training & Hyperparameter GridSearch",
+        "Coursework 3: Streamlit Deployment & Technical Report",
+        "Final Examination Component"
+    ],
+    "COM 742: Enterprise Data Systems": [
+        "Coursework 1: Relational Schema & SQL Design",
+        "Coursework 2: NoSQL Database Scaling Lab",
+        "Coursework 3: Distributed Data Infrastructure Project",
+        "Final Examination Component"
+    ],
+    "COM 711: Software Engineering Foundations": [
+        "Coursework 1: Requirements Specification & UML Diagrams",
+        "Coursework 2: Object-Oriented Programming Core Build",
+        "Coursework 3: System Testing & CI/CD Validation",
+        "Final Examination Component"
+    ],
+    "COM 705: Artificial Intelligence Principles": [
+        "Coursework 1: Search Algorithm Optimization Lab",
+        "Coursework 2: Neural Network Implementation Project",
+        "Coursework 3: Ethical AI Case Study Defense",
+        "Final Examination Component"
+    ]
+}
+
+short_name = selected_module.split(':')[0]
+active_syllabus = syllabus_blueprints[selected_module]
+max_components = len(active_syllabus)
+
+col_config1, col_config2 = st.columns(2)
+with col_config1:
     total_assignments = st.selectbox(
         f"Total Syllabus Components tracked for {short_name}",
         options=list(range(2, max_components + 1)),
-        index=2, # Defaults to 4 components
+        index=2,
         help="Select how many overall assessment components make up this specific module's syllabus."
     )
-    
+with col_config2:
     completed_assignments = st.selectbox(
-        "Number of assessments currently completed by the student",
+        "Number of assessments currently completed",
         options=list(range(1, total_assignments + 1)),
-        index=1, # Defaults to 2 completed
+        index=1,
         help="How many items from the syllabus are currently marked and available to evaluate?"
     )
-    
-    st.markdown("---")
+
+# Now use the form strictly to hold the data inputs and submit action button
+with st.form("input_marks_form"):
     st.write("📊 **Enter Available Coursework Marks (0 - 20 Marks per Component)**")
     
-    # Dynamically generate sliders using real assignment titles based on current progress
+    # This will now dynamically draw the correct number of sliders in real-time!
     grades = []
     for i in range(completed_assignments):
         assignment_label = active_syllabus[i]
@@ -122,7 +121,6 @@ with st.form("dynamic_assessment_form"):
     st.markdown("---")
     st.write("🏃‍♂️ **Student Behavioral & Study Factors**")
     
-    # Behavioral Background Layout
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         absences = st.number_input("Total Class Absences", min_value=0, max_value=100, value=2, step=1)
@@ -138,9 +136,8 @@ with st.form("dynamic_assessment_form"):
         
     submit_button = st.form_submit_button("Execute Risk Analysis", use_container_width=True)
 
-# Post-submission mapping pipeline
+# Post-submission parsing pipeline logic
 if submit_button:
-    # Map dynamic, incomplete assessment pipelines safely back to G1 and G2:
     if len(grades) == 1:
         g1_mapped = grades[0]
         g2_mapped = grades[0]
@@ -148,12 +145,9 @@ if submit_button:
         g1_mapped = grades[0]
         g2_mapped = grades[1]
     else:
-        # Averages early assignments to capture historical foundation baseline,
-        # sets latest score to capture the student's current trajectory vector
         g1_mapped = int(np.mean(grades[:-1]))
         g2_mapped = grades[-1]
         
-    # Construct feature matrix matching original dataset metadata schema
     input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
     input_dict['G1'] = [g1_mapped]
     input_dict['G2'] = [g2_mapped]
@@ -164,7 +158,6 @@ if submit_button:
     input_df = pd.DataFrame(input_dict)
     processed_input = preprocessor.transform(input_df)
     
-    # Generate machine learning model outcomes
     pred = model.predict(processed_input)[0]
     prob = model.predict_proba(processed_input)[0][1]
     
