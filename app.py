@@ -12,10 +12,8 @@ from streamlit_option_menu import option_menu
 
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-# Custom CSS styling injection 
 st.markdown("""
     <style>
-    /* Styling the main background */
     .stApp {
         background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
                           url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop");
@@ -28,7 +26,6 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Styling content containers */
     .module-config-card {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -65,7 +62,6 @@ st.markdown("""
         margin-top: 0px !important;
     }
     
-    /* Custom input controls sizing overrides */
     div[data-testid="stNumberInput"] {
         max-width: 100% !important;
     }
@@ -110,12 +106,12 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
-    /* Force custom sidebar look matching user requirements */
     [data-testid="stSidebar"] {
-        background-color: #3B82F6 !important;
+        background-color: #0F172A !important;
     }
     [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {
         color: #FFFFFF !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
     .element-container:has(h1, h2, h3, h4) a {
@@ -157,30 +153,30 @@ def train_model_live():
 
 preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
 
-# ---- CUSTOM SIDEBAR NAVIGATION BAR (MATCHING IMAGE SPECIFICATIONS) ----
 with st.sidebar:
-    st.markdown("<br><h2 style='color: white; font-weight: 700; margin-left: 10px; font-size: 1.6rem;'>Menu Panel</h2><hr style='border-color: rgba(255,255,255,0.3);'>", unsafe_allow_html=True)
+    st.markdown("<br><h2 style='color: white; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel</h2><hr style='border-color: rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
     
     page = option_menu(
-        menu_title=None, # Hides header to replicate screenshot style
+        menu_title=None,
         options=["Home", "Evaluation Metrics"],
-        icons=["house", "bar-chart-line"], # Matching Bootstrap icons
+        icons=["house", "bar-chart-line"],
         menu_icon="cast",
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#3B82F6"},
-            "icon": {"color": "white", "font-size": "18px"}, 
+            "container": {"padding": "0!important", "background-color": "#0F172A"},
+            "icon": {"color": "rgba(255, 255, 255, 0.7)", "font-size": "18px"}, 
             "nav-link": {
                 "font-size": "16px", 
                 "text-align": "left", 
                 "margin": "4px 10px", 
-                "color": "white",
+                "color": "rgba(255, 255, 255, 0.8)",
                 "font-weight": "400",
-                "border-radius": "8px"
+                "border-radius": "8px",
+                "font-family": "'Inter', sans-serif"
             },
             "nav-link-selected": {
-                "background-color": "#FFFFFF", 
-                "color": "#2563EB !important",
+                "background-color": "#2563EB", 
+                "color": "#FFFFFF !important",
                 "font-weight": "600"
             }
         }
@@ -339,7 +335,7 @@ elif page == "Evaluation Metrics":
     }
     st.table(pd.DataFrame(metrics_data))
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
     st.write("### Algorithm Diagnostic Visualizations")
     
     plot_col1, plot_col2 = st.columns(2)
