@@ -142,7 +142,7 @@ def train_model_live():
 preprocessor, model, features, num_cols = train_model_live()
 
 # Configuration Block Container
-st.markdown('<div class="config-block">', unsafe_allow_html=True)
+#st.markdown('<div class="config-block">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
 selected_module = st.selectbox(
