@@ -64,7 +64,7 @@ st.markdown("""
         margin-top: 0px !important;
     }
     
-    /* 3. Number Inputs and Submission Control Component Customizations */
+    /* 3. Input Controls Customizations */
     div[data-testid="stNumberInput"] {
         max-width: 100% !important;
     }
@@ -101,7 +101,7 @@ st.markdown("""
         margin-top: 10px !important;
     }
 
-    /* 4. Notification Alerts & Prediction Boxes Layout Details */
+    /* 4. Notification Alerts */
     .custom-popup-safe {
         background-color: #FFFFFF !important;
         border-left: 6px solid #16A34A !important;
@@ -122,7 +122,7 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
-    /* 5. Navigation Sidebar Panel Restyling */
+    /* 5. Navigation Sidebar Panel & Making it Permanent */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #E2E8F0 !important;
@@ -139,17 +139,21 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* CRITICAL FIX: Explicitly hides the default Streamlit navigation elements and native sidebar text leaks completely */
+    /* PERMANENT SIDEBAR FIX: Hides the default expand/collapse chevron buttons completely */
+    [data-testid="stSidebarCollapsedControl"], 
+    button[data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+    }
+    
+    /* Disables native list navigations */
     [data-testid="stSidebarNav"] {
         display: none !important;
     }
     
-    /* Targets and suppresses any leaked structural text variables like "keyboard_double_arrow_right" */
-    [data-testid="stSidebar"] button div {
+    /* Blocks text engine leaks inside sidebar structures */
+    [data-testid="stSidebar"] button div,
+    [data-testid="stSidebar"] .element-container:has(button) {
         display: none !important;
-    }
-    [data-testid="stSidebar"] svg {
-        fill: #475569 !important;
     }
     
     .element-container:has(h1, h2, h3, h4) a {
@@ -192,7 +196,8 @@ def train_model_live():
 preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
 
 with st.sidebar:
-    st.markdown("<br><h2 style='color: #0F172A; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel <span style='color: #64748B; font-weight: 400; font-size: 1.3rem; margin-left: 4px;'>&gt;&gt;</span></h2><hr style='border-color: #E2E8F0;'>", unsafe_allow_html=True)
+    # >> Removed from the title header layout below
+    st.markdown("<br><h2 style='color: #0F172A; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel</h2><hr style='border-color: #E2E8F0;'>", unsafe_allow_html=True)
     
     page = option_menu(
         menu_title=None,
@@ -224,6 +229,7 @@ if page == "Home":
     st.title("Student Academic Risk Predictor")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
+    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Module Configuration")
 
     selected_module = st.selectbox(
@@ -358,6 +364,7 @@ elif page == "Evaluation Metrics":
     st.title("Model Evaluation Engine Metrics")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review historical dataset trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
     
+    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Model Validation Metrics & Performance Evidence")
     st.write("Performance evaluation metrics recorded over a stratified validation data split:")
     
@@ -374,6 +381,7 @@ elif page == "Evaluation Metrics":
     st.table(pd.DataFrame(metrics_data))
     st.markdown('</div>', unsafe_allow_html=True)
     
+    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Algorithm Diagnostic Visualizations")
     
     plot_col1, plot_col2 = st.columns(2)
