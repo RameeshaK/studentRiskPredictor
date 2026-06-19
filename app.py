@@ -6,13 +6,13 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 
-# Set up page configuration for an enterprise web portal
-st.set_page_config(page_title="Dynamic Academic Risk Engine", layout="centered")
+# Set up clean page configuration
+st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-st.title("🎓 University Student Academic Risk Predictor")
+st.title("Student Academic Risk Predictor")
 st.markdown("""
-This decision-support tool dynamically adapts to specific program syllabi structures 
-to identify students who require early academic intervention before final grade submissions.
+This tool helps module coordinators identify students who may need early academic support 
+based on their continuous assessment performance and attendance trends.
 """)
 
 # Cache model training so it only runs once at startup
@@ -47,11 +47,10 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
-st.subheader("📋 Syllabus & Student Profile Mapping")
+st.subheader("Module Configuration")
 
-# FIX: Moved these selectors OUTSIDE the form so they trigger an instant screen refresh when changed!
 selected_module = st.selectbox(
-    "Select University Module",
+    "Select Module",
     options=[
         "COM 763: Advanced Machine Learning",
         "COM 742: Enterprise Data Systems",
@@ -94,49 +93,45 @@ max_components = len(active_syllabus)
 col_config1, col_config2 = st.columns(2)
 with col_config1:
     total_assignments = st.selectbox(
-        f"Total Syllabus Components tracked for {short_name}",
+        f"Total assessments in syllabus ({short_name})",
         options=list(range(2, max_components + 1)),
-        index=2,
-        help="Select how many overall assessment components make up this specific module's syllabus."
+        index=2
     )
 with col_config2:
     completed_assignments = st.selectbox(
-        "Number of assessments currently completed",
+        "Assessments completed by student so far",
         options=list(range(1, total_assignments + 1)),
-        index=1,
-        help="How many items from the syllabus are currently marked and available to evaluate?"
+        index=1
     )
 
-# Now use the form strictly to hold the data inputs and submit action button
+# Form block for user data entries
 with st.form("input_marks_form"):
-    st.write("📊 **Enter Available Coursework Marks (0 - 20 Marks per Component)**")
+    st.write("### Assessment Marks (0 - 20 range)")
     
-    # This will now dynamically draw the correct number of sliders in real-time!
     grades = []
     for i in range(completed_assignments):
         assignment_label = active_syllabus[i]
-        score = st.slider(f"✨ {assignment_label}", min_value=0, max_value=20, value=10)
+        score = st.slider(assignment_label, min_value=0, max_value=20, value=10)
         grades.append(score)
             
     st.markdown("---")
-    st.write("🏃‍♂️ **Student Behavioral & Study Factors**")
+    st.write("### Student Background & Attendance")
     
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        absences = st.number_input("Total Class Absences", min_value=0, max_value=100, value=2, step=1)
+        absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
     with col_b:
-        failures = st.selectbox("Previous Module Failures", options=[0, 1, 2, 3, 4],
-                                help="Number of modules failed by the student in prior semesters.")
+        failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4],
+                                help="Number of modules failed in previous semesters.")
     with col_c:
         study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
-        studytime = st.selectbox("Weekly Study Dedication", 
+        studytime = st.selectbox("Weekly Independent Study Time", 
                                  options=list(study_time_opts.keys()), 
-                                 format_func=lambda x: study_time_opts[x],
-                                 help="Estimated hours spent studying outside of lectures.")
+                                 format_func=lambda x: study_time_opts[x])
         
-    submit_button = st.form_submit_button("Execute Risk Analysis", use_container_width=True)
+    submit_button = st.form_submit_button("Calculate Risk Prediction", use_container_width=True)
 
-# Post-submission parsing pipeline logic
+# Post-submission processing
 if submit_button:
     if len(grades) == 1:
         g1_mapped = grades[0]
@@ -151,23 +146,4 @@ if submit_button:
     input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
     input_dict['G1'] = [g1_mapped]
     input_dict['G2'] = [g2_mapped]
-    input_dict['absences'] = [absences]
-    input_dict['failures'] = [failures]
-    input_dict['studytime'] = [studytime]
-    
-    input_df = pd.DataFrame(input_dict)
-    processed_input = preprocessor.transform(input_df)
-    
-    pred = model.predict(processed_input)[0]
-    prob = model.predict_proba(processed_input)[0][1]
-    
-    st.subheader("🔍 Analysis Verdict")
-    if pred == 1:
-        st.error(f"⚠️ **Intervention Flagged:** This student is predicted as **AT-RISK** of failing {short_name}. (Failure Risk Probability: {prob:.2%})")
-        st.markdown(f"""
-        **Recommended Course of Action for {short_name}:**
-        * Issue an early warning notification to academic advisers.
-        * Recommend targeting core concept gaps during upcoming laboratory sessions.
-        """)
-    else:
-        st.success(f"✅ **Clearance:** This student is predicted as **SAFE** to pass {short_name}. (Failure Risk Probability: {prob:.2%})")
+    input_dict
