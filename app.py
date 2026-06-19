@@ -1,10 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
@@ -131,13 +134,20 @@ def train_model_live():
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     X_train_proc = preprocessor.fit_transform(X_train)
+    X_test_proc = preprocessor.transform(X_test)
     
     model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42, class_weight='balanced')
     model.fit(X_train_proc, y_train)
-    return preprocessor, model, X.columns.tolist(), num_cols
+    
+    cat_encoder = preprocessor.named_transformers_['cat']
+    encoded_cat_cols = cat_encoder.get_feature_names_out(cat_cols).tolist()
+    all_features = num_cols + encoded_cat_cols
+    
+    return preprocessor, model, X.columns.tolist(), num_cols, X_test_proc, y_test, all_features
 
-preprocessor, model, features, num_cols = train_model_live()
+preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
 
+st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
 selected_module = st.selectbox(
@@ -267,3 +277,32 @@ if submit_button:
             </p>
         </div>
         """, unsafe_allow_html=True)
+
+st.markdown("<br><hr><br>", unsafe_allow_html=True)
+st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
+st.write("### Model Evaluation Engine Metrics")
+
+plot_col1, plot_col2 = st.columns(2)
+
+with plot_col1:
+    fig_cm, ax_cm = plt.subplots(figsize=(4, 3.5))
+    y_pred = model.predict(X_test_proc)
+    cm = confusion_matrix(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Safe', 'At-Risk'])
+    disp.plot(ax=ax_cm, cmap='Blues', values_format='d', colorbar=False)
+    ax_cm.set_title('Confusion Matrix', fontsize=10, fontweight='bold')
+    plt.tight_layout()
+    st.pyplot(fig_cm)
+
+with plot_col2:
+    fig_fi, ax_fi = plt.subplots(figsize=(5, 3.5))
+    importances = model.feature_importances_
+    feat_importances = pd.Series(importances, index=all_features).sort_values(ascending=False).head(8)
+    sns.barplot(x=feat_importances.values, y=feat_importances.index, ax=ax_fi, palette='Blues_r')
+    ax_fi.set_title('Top Feature Importances', fontsize=10, fontweight='bold')
+    ax_fi.set_xlabel('Relative Score', fontsize=8)
+    ax_fi.tick_params(axis='both', labelsize=8)
+    plt.tight_layout()
+    st.pyplot(fig_fi)
+
+st.markdown('</div>', unsafe_allow_html=True)
