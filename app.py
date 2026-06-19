@@ -214,4 +214,65 @@ with st.form("input_marks_form"):
     st.markdown("---")
     st.write("### Student Background & Attendance")
     
-    # FIX: Clean, explicitly separated column widths to secure true
+    # FIX: Clean, explicitly separated column widths to secure true single-line alignment
+    col_a, col_b, col_c = st.columns([1, 1.2, 1.3])
+    with col_a:
+        absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
+    with col_b:
+        failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4])
+    with col_c:
+        study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
+        studytime = st.selectbox("Weekly Independent Study Time", 
+                                 options=list(study_time_opts.keys()), 
+                                 format_func=lambda x: study_time_opts[x])
+        
+    submit_button = st.form_submit_button("Calculate Risk Prediction")
+
+# POP-UP BOX DISPLAY MAPPING
+if submit_button:
+    if len(grades) == 1:
+        g1_mapped = grades[0]
+        g2_mapped = grades[0]
+    elif len(grades) == 2:
+        g1_mapped = grades[0]
+        g2_mapped = grades[1]
+    else:
+        g1_mapped = int(np.mean(grades[:-1]))
+        g2_mapped = grades[-1]
+        
+    input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
+    input_dict['G1'] = [g1_mapped]
+    input_dict['G2'] = [g2_mapped]
+    input_dict['absences'] = [absences]
+    input_dict['failures'] = [failures]
+    input_dict['studytime'] = [studytime]
+    
+    input_df = pd.DataFrame(input_dict)
+    processed_input = preprocessor.transform(input_df)
+    
+    pred = model.predict(processed_input)[0]
+    prob = model.predict_proba(processed_input)[0][1]
+    
+    st.toast("Analysis complete!", icon="🔄")
+    
+    # FIX: Injecting clean custom white high-contrast banner blocks for maximum text legibility
+    if pred == 1:
+        st.markdown(f"""
+        <div class="custom-popup-risk">
+            <h4 style="color: #DC2626; margin: 0 0 8px 0; font-weight:700;">⚠️ Prediction Verdict: Student is At-Risk</h4>
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #334155;">
+                The evaluation engine has flagged this student profile with an estimated failure risk probability of <strong>{prob:.1%}</strong>. 
+                Immediate outreach or targeted support sessions for <strong>{short_name}</strong> are highly recommended.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div class="custom-popup-safe">
+            <h4 style="color: #16A34A; margin: 0 0 8px 0; font-weight:700;">✅ Prediction Verdict: Student is Safe</h4>
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #334155;">
+                The evaluation engine predicts this student is currently on track to clear all pass requirements. 
+                The calculated module failure risk is low (<strong>{prob:.1%}</strong>).
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
