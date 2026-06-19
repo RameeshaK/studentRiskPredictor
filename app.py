@@ -40,6 +40,11 @@ st.markdown("""
         border-radius: 8px;
         padding: 24px;
     }
+
+    /* HIDES THE HOVER ANCHOR LINK ICON */
+    .element-container:has(h1, h2, h3, h4) a {
+        display: none !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
