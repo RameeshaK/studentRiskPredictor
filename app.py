@@ -119,14 +119,14 @@ st.markdown("""
     }
     
     [data-testid="stSidebar"] {
-        background-color: #0F172A !important;
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E2E8F0 !important;
     }
     [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {
-        color: #FFFFFF !important;
+        color: #0F172A !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Hides the leaking option-menu layout title text artifact completely */
     [data-testid="stSidebar"] .nav-link-text {
         font-family: 'Inter', sans-serif !important;
     }
@@ -134,7 +134,6 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Target common places where native sidebar text leaks can happen */
     [data-testid="stSidebarNav"] {
         display: none !important;
     }
@@ -179,7 +178,7 @@ def train_model_live():
 preprocessor, model, features, num_cols, X_test_proc, y_test, all_features = train_model_live()
 
 with st.sidebar:
-    st.markdown("<br><h2 style='color: white; font-weight: 700; margin-left: 10px; font-size: 1.6rem;'>Menu Panel <span style='color: #FFFFFF; font-weight: 400; font-size: 1.3rem; margin-left: 4px;'>&gt;&gt;</span></h2><hr style='border-color: rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
+    st.markdown("<br><h2 style='color: #0F172A; font-weight: 700; margin-left: 10px; font-size: 1.6rem; font-family: \"Inter\", sans-serif;'>Menu Panel <span style='color: #64748B; font-weight: 400; font-size: 1.3rem; margin-left: 4px;'>&gt;&gt;</span></h2><hr style='border-color: #E2E8F0;'>", unsafe_allow_html=True)
     
     page = option_menu(
         menu_title=None,
@@ -188,20 +187,20 @@ with st.sidebar:
         menu_icon=None,
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#0F172A"},
-            "icon": {"color": "rgba(255, 255, 255, 0.7)", "font-size": "18px"}, 
+            "container": {"padding": "0!important", "background-color": "#FFFFFF"},
+            "icon": {"color": "#475569", "font-size": "18px"}, 
             "nav-link": {
                 "font-size": "16px", 
                 "text-align": "left", 
                 "margin": "4px 10px", 
-                "color": "rgba(255, 255, 255, 0.8)",
+                "color": "#475569",
                 "font-weight": "400",
                 "border-radius": "8px",
                 "font-family": "'Inter', sans-serif"
             },
             "nav-link-selected": {
-                "background-color": "#2563EB", 
-                "color": "#FFFFFF !important",
+                "background-color": "#F1F5F9", 
+                "color": "#2563EB !important",
                 "font-weight": "600"
             }
         }
@@ -211,7 +210,6 @@ if page == "Home":
     st.title("Student Academic Risk Predictor")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Module Configuration")
 
     selected_module = st.selectbox(
@@ -346,7 +344,6 @@ elif page == "Evaluation Metrics":
     st.title("Model Evaluation Engine Metrics")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review historical dataset trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
     
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Model Validation Metrics & Performance Evidence")
     st.write("Performance evaluation metrics recorded over a stratified validation data split:")
     
@@ -363,7 +360,6 @@ elif page == "Evaluation Metrics":
     st.table(pd.DataFrame(metrics_data))
     st.markdown('</div>', unsafe_allow_html=True)
     
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Algorithm Diagnostic Visualizations")
     
     plot_col1, plot_col2 = st.columns(2)
