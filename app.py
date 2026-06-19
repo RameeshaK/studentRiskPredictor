@@ -279,33 +279,39 @@ if submit_button:
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
-# FIX: Wrap the charts behind an interactive toggle checkbox button
-show_metrics = st.checkbox("Show Model Evaluation Engine Metrics (Confusion Matrix & Feature Importance)")
+# Use state session variables to track toggles accurately across updates
+if 'show_metrics' not in st.session_state:
+    st.session_state.show_metrics = False
 
-if show_metrics:
+if st.button("Evaluation Metrics"):
+    st.session_state.show_metrics = not st.session_state.show_metrics
+
+if st.session_state.show_metrics:
     st.write("### Model Evaluation Engine Metrics")
     
+    # Symmetrical 50/50 column distribution matrix layout
     plot_col1, plot_col2 = st.columns(2)
     
+    # Force identical sizing matrices across components using uniform layout bounding limits
     with plot_col1:
-        fig_cm, ax_cm = plt.subplots(figsize=(4, 3.5))
+        fig_cm, ax_cm = plt.subplots(figsize=(4.5, 4))
         y_pred = model.predict(X_test_proc)
         cm = confusion_matrix(y_test, y_pred)
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Safe', 'At-Risk'])
         disp.plot(ax=ax_cm, cmap='Blues', values_format='d', colorbar=False)
-        ax_cm.set_title('Confusion Matrix', fontsize=10, fontweight='bold')
+        ax_cm.set_title('Confusion Matrix', fontsize=11, fontweight='bold')
         plt.tight_layout()
-        st.pyplot(fig_cm)
+        st.pyplot(fig_cm, use_container_width=True)
     
     with plot_col2:
-        fig_fi, ax_fi = plt.subplots(figsize=(5, 3.5))
+        fig_fi, ax_fi = plt.subplots(figsize=(4.5, 4))
         importances = model.feature_importances_
         feat_importances = pd.Series(importances, index=all_features).sort_values(ascending=False).head(8)
         sns.barplot(x=feat_importances.values, y=feat_importances.index, ax=ax_fi, palette='Blues_r')
-        ax_fi.set_title('Top Feature Importances', fontsize=10, fontweight='bold')
-        ax_fi.set_xlabel('Relative Score', fontsize=8)
-        ax_fi.tick_params(axis='both', labelsize=8)
+        ax_fi.set_title('Top Feature Importances', fontsize=11, fontweight='bold')
+        ax_fi.set_xlabel('Relative Score', fontsize=9)
+        ax_fi.tick_params(axis='both', labelsize=9)
         plt.tight_layout()
-        st.pyplot(fig_fi)
+        st.pyplot(fig_fi, use_container_width=True)
         
     st.markdown('</div>', unsafe_allow_html=True)
