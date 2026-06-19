@@ -9,56 +9,77 @@ from sklearn.ensemble import RandomForestClassifier
 # Set up page configuration
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
-# WALLPAPER & LAYOUT ALIGNMENT CSS
+# WALLPAPER BLUR & HIGH-CONTRAST CSS INJECTION
 st.markdown("""
     <style>
-    /* Full-screen Wallpaper Background */
+    /* Full-screen Blurred Wallpaper Background Wrapper */
     .stApp {
+        position: relative;
+    }
+    
+    /* Create a pseudo-element for the wallpaper to apply blur without impacting foreground text */
+    .stApp::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
         background-image: url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
+        filter: blur(12px) brightness(0.9); /* Adds a 12px blur and slightly darkens the wallpaper for text contrast */
+        transform: scale(1.05); /* Prevents white artifacts on edge blur */
     }
     
-    /* Global Clean Typography Stack */
+    /* Global Typography Stack */
     html, body, [class*="css"], .stSlider, .stSelectbox, p, label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Content Containers Layout */
-    .config-block {
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+    /* Clear White Content Block for Module Configuration */
+    .module-config-card {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
         border-radius: 12px;
         padding: 24px;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     
+    /* Solid White main form block container */
     div[data-testid="stForm"] {
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
         border-radius: 12px;
         padding: 28px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
     }
     
-    /* Header typography elements */
+    /* High contrast text definitions over forms */
+    label, .stWidgetLabel p {
+        color: #1E293B !important;
+        font-weight: 500 !important;
+    }
+    
+    /* App Title Header Styling */
     h1 {
         font-weight: 700 !important;
         color: #0F172A !important;
         font-size: 2.4rem !important;
+        margin-bottom: 4px !important;
     }
     h3 {
         font-weight: 600 !important;
-        color: #1E293B !important;
+        color: #0F172A !important;
         font-size: 1.25rem !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 16px !important;
+        margin-top: 0px !important;
     }
     
-    /* FIX: Force Number Input layout controls to be small, clean, and contained */
+    /* Keep number inputs tightly contained and match styles */
     div[data-testid="stNumberInput"] > div {
         max-width: 140px !important;
     }
@@ -70,7 +91,7 @@ st.markdown("""
         border: 1px solid #CBD5E1 !important;
     }
     
-    /* Form Execution Button style profile */
+    /* Interactive form execution button element */
     div[data-testid="stForm"] button[type="submit"] {
         background-color: #2563EB !important;
         color: white !important;
@@ -82,7 +103,7 @@ st.markdown("""
         margin-top: 10px;
     }
 
-    /* FIX: High-Visibility Result Popup Cards (White background text overlay) */
+    /* Fixed result display banner containers */
     .custom-popup-safe {
         background-color: #FFFFFF !important;
         border-left: 6px solid #16A34A !important;
@@ -103,7 +124,7 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
-    /* Hide specific heading elements link icons */
+    /* Hide specific heading links */
     .element-container:has(h1, h2, h3, h4) a {
         display: none !important;
     }
@@ -111,7 +132,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("Student Academic Risk Predictor")
-st.markdown("Use this assessment panel to review individual student progress trends and identify early risk vectors.")
+st.markdown("<p style='color: #334155; font-size: 1.1rem; margin-bottom: 24px;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
 # Cache model training so it only runs once at startup
 @st.cache_resource
@@ -141,8 +162,8 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
-# Configuration Block Container
-#st.markdown('<div class="config-block">', unsafe_allow_html=True)
+# Module Configuration Wrapper
+st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
 st.write("### Module Configuration")
 
 selected_module = st.selectbox(
@@ -214,7 +235,6 @@ with st.form("input_marks_form"):
     st.markdown("---")
     st.write("### Student Background & Attendance")
     
-    # FIX: Clean, explicitly separated column widths to secure true single-line alignment
     col_a, col_b, col_c = st.columns([1, 1.2, 1.3])
     with col_a:
         absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
@@ -228,7 +248,7 @@ with st.form("input_marks_form"):
         
     submit_button = st.form_submit_button("Calculate Risk Prediction")
 
-# POP-UP BOX DISPLAY MAPPING
+# Form outcome tracking
 if submit_button:
     if len(grades) == 1:
         g1_mapped = grades[0]
@@ -255,12 +275,11 @@ if submit_button:
     
     st.toast("Analysis complete!", icon="🔄")
     
-    # FIX: Injecting clean custom white high-contrast banner blocks for maximum text legibility
     if pred == 1:
         st.markdown(f"""
         <div class="custom-popup-risk">
             <h4 style="color: #DC2626; margin: 0 0 8px 0; font-weight:700;">⚠️ Prediction Verdict: Student is At-Risk</h4>
-            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #334155;">
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #1E293B;">
                 The evaluation engine has flagged this student profile with an estimated failure risk probability of <strong>{prob:.1%}</strong>. 
                 Immediate outreach or targeted support sessions for <strong>{short_name}</strong> are highly recommended.
             </p>
@@ -270,7 +289,7 @@ if submit_button:
         st.markdown(f"""
         <div class="custom-popup-safe">
             <h4 style="color: #16A34A; margin: 0 0 8px 0; font-weight:700;">✅ Prediction Verdict: Student is Safe</h4>
-            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #334155;">
+            <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #1E293B;">
                 The evaluation engine predicts this student is currently on track to clear all pass requirements. 
                 The calculated module failure risk is low (<strong>{prob:.1%}</strong>).
             </p>
