@@ -9,6 +9,40 @@ from sklearn.ensemble import RandomForestClassifier
 # Set up clean page configuration
 st.set_page_config(page_title="Student Academic Risk Predictor", layout="centered")
 
+# Custom CSS Injection to change the font and styling to a clean, human-designed aesthetic
+st.markdown("""
+    <style>
+    /* Change base typography across the entire application */
+    html, body, [class*="css"], .stSlider, .stSelectbox, p, label {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    
+    /* Make the title cleaner and less bulky */
+    h1 {
+        font-weight: 700 !important;
+        color: #1E293B !important;
+        font-size: 2.25rem !important;
+        letter-spacing: -0.025em !important;
+    }
+    
+    /* Subheadings look */
+    h3 {
+        font-weight: 600 !important;
+        color: #334155 !important;
+        font-size: 1.25rem !important;
+        margin-top: 1rem !important;
+    }
+    
+    /* Custom subtle styling for form block container */
+    div[data-testid="stForm"] {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 24px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("Student Academic Risk Predictor")
 st.markdown("""
 This tool helps module coordinators identify students who may need early academic support 
@@ -47,7 +81,7 @@ def train_model_live():
 
 preprocessor, model, features, num_cols = train_model_live()
 
-st.subheader("Module Configuration")
+st.write("### Module Configuration")
 
 selected_module = st.selectbox(
     "Select Module",
@@ -146,4 +180,20 @@ if submit_button:
     input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
     input_dict['G1'] = [g1_mapped]
     input_dict['G2'] = [g2_mapped]
-    input_dict
+    input_dict['absences'] = [absences]
+    input_dict['failures'] = [failures]
+    input_dict['studytime'] = [studytime]
+    
+    input_df = pd.DataFrame(input_dict)
+    processed_input = preprocessor.transform(input_df)
+    
+    pred = model.predict(processed_input)[0]
+    prob = model.predict_proba(processed_input)[0][1]
+    
+    st.write("---")
+    st.write("### Prediction Result")
+    if pred == 1:
+        st.error(f"Status Flagged: At-Risk of failure (Probability: {prob:.1%})")
+        st.markdown(f"**Suggested action:** Flag student for academic review or practical support in {short_name}.")
+    else:
+        st.success(f"Status Clear: Student is on track to pass (Risk Probability: {prob:.1%})")
