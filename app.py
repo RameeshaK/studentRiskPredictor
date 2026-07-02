@@ -143,7 +143,7 @@ def train_models_live():
     X_train_proc = preprocessor.fit_transform(X_train)
     X_test_proc = preprocessor.transform(X_test)
     
-    # Model 1: Random Forest
+    # Model 1: Random Forest (Primary Selection)
     rf_model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42, class_weight='balanced')
     rf_model.fit(X_train_proc, y_train)
     
@@ -155,7 +155,6 @@ def train_models_live():
     encoded_cat_cols = cat_encoder.get_feature_names_out(cat_cols).tolist()
     all_features = num_cols + encoded_cat_cols
     
-    # Calculate Live Validation Metrics dynamically
     models_dict = {"Random Forest Classifier": rf_model, "Logistic Regression": lr_model}
     metrics_log = {}
     
@@ -203,11 +202,9 @@ if page == "Home":
             options=["COM 763: Advanced Machine Learning", "COM 742: Enterprise Data Systems", "COM 711: Software Engineering Foundations", "COM 705: Artificial Intelligence Principles"]
         )
     with col_mod2:
-        # Fulfills Multi-Model Selection Criterion
         chosen_algorithm = st.selectbox(
             "Active Classification Model",
-            options=["Random Forest Classifier", "Logistic Regression"],
-            help="Switching models updates algorithmic inference vectors dynamically based on historical testing bounds."
+            options=["Random Forest Classifier", "Logistic Regression"]
         )
     
     syllabus_blueprints = {
@@ -241,12 +238,12 @@ if page == "Home":
         
         col_a, col_b, col_c = st.columns([1, 1.2, 1.3])
         with col_a:
-            absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1, help="Total number of classes missed across the operational term.")
+            absences = st.number_input("Total Absences", min_value=0, max_value=100, value=2, step=1)
         with col_b:
-            failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4], help="Number of historical modules failed previously.")
+            failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4])
         with col_c:
             study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
-            studytime = st.selectbox("Self Study (weekly)", options=list(study_time_opts.keys()), format_func=lambda x: study_time_opts[x], help="Hours dedicated by the student to self-guided learning per week.")
+            studytime = st.selectbox("Weekly Independent Study Time", options=list(study_time_opts.keys()), format_func=lambda x: study_time_opts[x])
             
         submit_button = st.form_submit_button("Calculate Risk Prediction")
 
@@ -275,14 +272,14 @@ if page == "Home":
         pred = active_model.predict(processed_input)[0]
         prob = active_model.predict_proba(processed_input)[0][1]
         
-        st.toast(f"Analysis complete via {chosen_algorithm}!", icon="🔄")
+        st.toast(f"Analysis complete!", icon="🔄")
         
         if pred == 1:
             st.markdown(f"""
             <div class="custom-popup-risk">
-                <h4 style="color: #DC2626; margin: 0 0 8px 0; font-weight:700;">⚠️ Prediction Verdict: Student is At-Risk ({chosen_algorithm})</h4>
+                <h4 style="color: #DC2626; margin: 0 0 8px 0; font-weight:700;">⚠️ Prediction Verdict: Student is At-Risk</h4>
                 <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #0F172A;">
-                    The evaluation engine has flagged this student profile with an estimated failure risk probability of <strong>{prob:.1%}</strong>. 
+                    The evaluation engine has flagged this student profile with an estimated failure risk probability of <strong>{prob:.1%}</strong> via <strong>{chosen_algorithm}</strong>. 
                     Immediate outreach or targeted support sessions for <strong>{short_name}</strong> are highly recommended.
                 </p>
             </div>
@@ -290,18 +287,16 @@ if page == "Home":
         else:
             st.markdown(f"""
             <div class="custom-popup-safe">
-                <h4 style="color: #16A34A; margin: 0 0 8px 0; font-weight:700;">✅ Prediction Verdict: Student is Safe ({chosen_algorithm})</h4>
+                <h4 style="color: #16A34A; margin: 0 0 8px 0; font-weight:700;">✅ Prediction Verdict: Student is Safe</h4>
                 <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #0F172A;">
-                    The evaluation engine predicts this student is currently on track to clear all pass requirements. 
+                    The evaluation engine predicts this student is currently on track to clear all pass requirements using <strong>{chosen_algorithm}</strong>. 
                     The calculated module failure risk is low (<strong>{prob:.1%}</strong>).
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
-        # Fulfills Pipeline Transparency Requirement (Criterion 2)
         st.write("<br>", unsafe_allow_html=True)
         with st.expander("🔍 View Preprocessed Real-Time Input Feature Vector"):
-            st.write("This shows the formatted entry vector after scaling numerical parameters and applying One-Hot Encoding transformations:")
             transformed_df = pd.DataFrame(processed_input, columns=all_features)
             st.dataframe(transformed_df.loc[:, (transformed_df != 0).any(axis=0)])
 
@@ -310,8 +305,7 @@ elif page == "Evaluation Metrics":
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review live data-driven trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
     
     st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
-    st.write("### Model Validation Metrics (Live Calculated Validation Splitting)")
-    st.write("The metrics below are dynamically computed from the internal validation testing cohort:")
+    st.write("### Model Validation Metrics (Live Calculated)")
     
     rf_m = metrics_log["Random Forest Classifier"]
     lr_m = metrics_log["Logistic Regression"]
@@ -351,7 +345,7 @@ elif page == "Evaluation Metrics":
         feat_importances = pd.Series(importances, index=all_features).sort_values(ascending=False).head(8)
         sns.barplot(x=feat_importances.values, y=feat_importances.index, ax=ax_fi, palette='Blues_r')
         ax_fi.set_title(title_label, fontsize=10, fontweight='bold')
-        ax_fi.set_xlabel('Relative Relative Score Metric', fontsize=9)
+        ax_fi.set_xlabel('Relative Score Metric', fontsize=9)
         ax_fi.tick_params(axis='both', labelsize=9)
         plt.tight_layout()
         st.pyplot(fig_fi, use_container_width=True)
