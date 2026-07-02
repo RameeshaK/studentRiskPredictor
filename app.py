@@ -189,7 +189,7 @@ with st.sidebar:
     )
 
 if page == "Home":
-    st.title("Student Academic Risk Predictor")
+    st.markdown("<h1 style='color: #1E40AF !important; font-size: 2.5rem; font-weight: 800; margin-bottom: 8px;'>Student Academic Risk Predictor</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
     st.write("### Module & Model Selection Blueprint")
