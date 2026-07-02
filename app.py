@@ -246,7 +246,7 @@ if page == "Home":
             failures = st.selectbox("Past Module Failures", options=[0, 1, 2, 3, 4], help="Number of historical modules failed previously.")
         with col_c:
             study_time_opts = {1: "< 2 Hours", 2: "2 - 5 Hours", 3: "5 - 10 Hours", 4: "> 10 Hours"}
-            studytime = st.selectbox("Weekly Independent Study Time", options=list(study_time_opts.keys()), format_func=lambda x: study_time_opts[x], help="Hours dedicated by the student to self-guided learning per week.")
+            studytime = st.selectbox("Self Study (weekly)", options=list(study_time_opts.keys()), format_func=lambda x: study_time_opts[x], help="Hours dedicated by the student to self-guided learning per week.")
             
         submit_button = st.form_submit_button("Calculate Risk Prediction")
 
