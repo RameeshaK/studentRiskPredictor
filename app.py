@@ -258,6 +258,9 @@ if page == "Home":
             g2_mapped = grades[-1]
             
         input_dict = {col: [0] if col in num_cols else ['M'] for col in features}
+        
+        # Mapping base values
+        input_dict['age'] = [17]
         input_dict['G1'] = [g1_mapped]
         input_dict['G2'] = [g2_mapped]
         input_dict['absences'] = [absences]
@@ -295,7 +298,40 @@ if page == "Home":
             """, unsafe_allow_html=True)
 
         st.write("<br>", unsafe_allow_html=True)
+        
+        # REFACTORED USER-FRIENDLY PIPELINE PORTAL
         with st.expander("🔍 View Preprocessed Real-Time Input Feature Vector"):
+            st.markdown("### Algorithmic Feature Vector Pipeline")
+            st.write("This table shows the feature values processed by the pipeline engine:")
+            
+            display_data = {
+                "Feature Name": [
+                    "First Assessment Grade (G1)", 
+                    "Second Assessment Grade (G2)", 
+                    "Total Semester Absences", 
+                    "Historical Module Failures", 
+                    "Independent Study Allocation"
+                ],
+                "Submitted Raw Input": [
+                    f"{g1_mapped} / 20",
+                    f"{g2_mapped} / 20",
+                    f"{absences} days",
+                    f"{failures} modules",
+                    study_time_opts[studytime]
+                ],
+                "Model Feature Assignment": [
+                    "Continuous Numerical Vector",
+                    "Continuous Numerical Vector",
+                    "Continuous Numerical Vector",
+                    "Ordinal Class Identifier",
+                    "Categorical Categorized Array"
+                ]
+            }
+            
+            summary_df = pd.DataFrame(display_data)
+            st.table(summary_df)
+            
+            st.write("**Model Engine Raw Input Representation Layer:**")
             transformed_df = pd.DataFrame(processed_input, columns=all_features)
             st.dataframe(transformed_df.loc[:, (transformed_df != 0).any(axis=0)])
 
