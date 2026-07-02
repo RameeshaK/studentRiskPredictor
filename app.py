@@ -192,7 +192,6 @@ if page == "Home":
     st.title("Student Academic Risk Predictor")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Use this assessment panel to review individual student progress trends and identify early risk vectors.</p>", unsafe_allow_html=True)
 
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Module & Model Selection Blueprint")
     
     col_mod1, col_mod2 = st.columns(2)
