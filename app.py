@@ -339,7 +339,6 @@ elif page == "Evaluation Metrics":
     st.title("Model Evaluation Engine Metrics")
     st.markdown("<p style='color: #1E293B; font-size: 1.1rem; margin-bottom: 24px; font-weight: 400;'>Review live data-driven trends, algorithmic breakdown matrices, and feature extraction weights.</p>", unsafe_allow_html=True)
     
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Model Validation Metrics (Live Calculated)")
     
     rf_m = metrics_log["Random Forest Classifier"]
@@ -353,7 +352,6 @@ elif page == "Evaluation Metrics":
     st.table(pd.DataFrame(comparison_table))
     st.markdown('</div>', unsafe_allow_html=True)
     
-    st.markdown('<div class="module-config-card">', unsafe_allow_html=True)
     st.write("### Visualized Algorithmic Diagnostics Matrix")
     
     chosen_chart_model = st.selectbox("Select Target Model for Visualizations", options=["Random Forest Classifier", "Logistic Regression"])
